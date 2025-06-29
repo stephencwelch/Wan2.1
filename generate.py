@@ -370,7 +370,7 @@ def generate(args):
 
         logging.info(
             f"Generating {'image' if 't2i' in args.task else 'video'} ...")
-        video = wan_t2v.generate(
+        video, all_noise_preds, all_x0s = wan_t2v.generate( #SW Edits
             args.prompt,
             size=SIZE_CONFIGS[args.size],
             frame_num=args.frame_num,
@@ -579,6 +579,28 @@ def generate(args):
                 nrow=1,
                 normalize=True,
                 value_range=(-1, 1))
+            
+            #SW Additions
+            for i, v in enumerate(all_noise_preds):
+                print('Saving noise pred video '+str(i))
+                cache_video(
+                    tensor=v[None],
+                    save_file=str(i.zfill(2))+'_noise_pred.mp4',
+                    fps=cfg.sample_fps,
+                    nrow=1,
+                    normalize=True,
+                    value_range=(-1, 1))
+            
+            for i, v in enumerate(all_x0s):
+                print('Saving x0 video '+str(i))
+                cache_video(
+                    tensor=v[None],
+                    save_file=str(i.zfill(2))+'_noise_pred.mp4',
+                    fps=cfg.sample_fps,
+                    nrow=1,
+                    normalize=True,
+                    value_range=(-1, 1))
+
     logging.info("Finished.")
 
 

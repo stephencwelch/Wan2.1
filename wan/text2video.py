@@ -167,7 +167,16 @@ class WanT2V:
 
         if n_prompt == "":
             n_prompt = self.sample_neg_prompt
+
+        #SW Override!
+        # n_prompt=""
+        # print("overriding negative prompt bitches!")
+
         seed = seed if seed >= 0 else random.randint(0, sys.maxsize)
+
+        print("Random Seed = ")
+        print(seed)
+
         seed_g = torch.Generator(device=self.device)
         seed_g.manual_seed(seed)
 
@@ -201,6 +210,8 @@ class WanT2V:
         no_sync = getattr(self.model, 'no_sync', noop_no_sync)
 
         # evaluation mode
+        all_noise_preds=[]
+        all_x0s=[]
         with amp.autocast(dtype=self.param_dtype), torch.no_grad(), no_sync():
 
             if sample_solver == 'unipc':
@@ -242,8 +253,13 @@ class WanT2V:
                 noise_pred_uncond = self.model(
                     latent_model_input, t=timestep, **arg_null)[0]
 
+                #torch.Size([16, 3, 90, 160])
                 noise_pred = noise_pred_uncond + guide_scale * (
                     noise_pred_cond - noise_pred_uncond)
+
+                # all_noise_preds.append(noise_pred.detach().cpu())
+                video = self.vae.decode([noise_pred])
+                all_noise_preds.append(video[0].detach().cpu())
 
                 temp_x0 = sample_scheduler.step(
                     noise_pred.unsqueeze(0),
@@ -253,7 +269,11 @@ class WanT2V:
                     generator=seed_g)[0]
                 latents = [temp_x0.squeeze(0)]
 
-            x0 = latents
+                # all_x0s.append(latents.detach().cpu())
+                video = self.vae.decode(latents)
+                all_x0s.append(video[0].detach().cpu())
+
+            x0 = latents #[torch.Size([16, 3, 90, 160])]
             if offload_model:
                 self.model.cpu()
                 torch.cuda.empty_cache()
@@ -268,4 +288,5 @@ class WanT2V:
         if dist.is_initialized():
             dist.barrier()
 
-        return videos[0] if self.rank == 0 else None
+        # return videos[0] if self.rank == 0 else None
+        return videos[0], all_noise_preds, all_x0s
