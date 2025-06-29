@@ -257,9 +257,9 @@ class WanT2V:
                 noise_pred = noise_pred_uncond + guide_scale * (
                     noise_pred_cond - noise_pred_uncond)
 
-                # all_noise_preds.append(noise_pred.detach().cpu())
-                video = self.vae.decode([noise_pred])
-                all_noise_preds.append(video[0].detach().cpu())
+                all_noise_preds.append(noise_pred.detach().cpu())
+                # video = self.vae.decode([noise_pred])
+                # all_noise_preds.append(video[0].detach().cpu())
 
                 temp_x0 = sample_scheduler.step(
                     noise_pred.unsqueeze(0),
@@ -269,9 +269,9 @@ class WanT2V:
                     generator=seed_g)[0]
                 latents = [temp_x0.squeeze(0)]
 
-                # all_x0s.append(latents.detach().cpu())
-                video = self.vae.decode(latents)
-                all_x0s.append(video[0].detach().cpu())
+                all_x0s.append(latents.detach().cpu())
+                # video = self.vae.decode(latents)
+                # all_x0s.append(video[0].detach().cpu())
 
             x0 = latents #[torch.Size([16, 3, 90, 160])]
             if offload_model:
@@ -279,6 +279,15 @@ class WanT2V:
                 torch.cuda.empty_cache()
             if self.rank == 0:
                 videos = self.vae.decode(x0)
+
+                print('Running cached results through VAE...')
+                self.vae.to('cpu') #"eh?"
+                noise_vids=[]
+                for p in all_noise_preds:
+                    noise_vids.append(self.vae.decode([p])) #Will this be a problem since the VAE is on GPU?
+                x0_vids=[]
+                for p in all_x0s:
+                    x0_vids.append(self.vae.decode(p))
 
         del noise, latents
         del sample_scheduler
@@ -289,4 +298,4 @@ class WanT2V:
             dist.barrier()
 
         # return videos[0] if self.rank == 0 else None
-        return videos[0], all_noise_preds, all_x0s
+        return videos[0], noise_vids, x0_vids
