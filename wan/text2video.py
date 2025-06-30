@@ -273,8 +273,8 @@ class WanT2V:
                 # video = self.vae.decode(latents)
                 # all_x0s.append(video[0].detach().cpu())
 
-            torch.save(all_noise_preds, 'all_noise_preds_1.pt')
-            torch.save(all_x0s, 'all_x0_1.pt')
+            torch.save(all_noise_preds, 'all_noise_preds_2.pt')
+            torch.save(all_x0s, 'all_x0_2.pt')
 
             x0 = latents #[torch.Size([16, 3, 90, 160])]
             if offload_model:
