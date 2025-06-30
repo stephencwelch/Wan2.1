@@ -284,13 +284,12 @@ class WanT2V:
                 videos = self.vae.decode(x0)
 
                 print('Running cached results through VAE...')
-                self.vae.to('cpu') #"eh?"
                 noise_vids=[]
                 for p in all_noise_preds:
-                    noise_vids.append(self.vae.decode([p])) #Will this be a problem since the VAE is on GPU?
+                    noise_vids.append(self.vae.decode([p.to('cuda')])) #Will this be a problem since the VAE is on GPU?
                 x0_vids=[]
                 for p in all_x0s:
-                    x0_vids.append(self.vae.decode(p))
+                    x0_vids.append(self.vae.decode([p[0].to('cuda')]))
 
         del noise, latents
         del sample_scheduler
