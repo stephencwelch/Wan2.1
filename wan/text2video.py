@@ -237,6 +237,7 @@ class WanT2V:
 
             # sample videos
             latents = noise
+            all_x0s.append(latents[0].detach().cpu())
 
             arg_c = {'context': context, 'seq_len': seq_len}
             arg_null = {'context': context_null, 'seq_len': seq_len}
