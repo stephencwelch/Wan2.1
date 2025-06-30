@@ -585,7 +585,7 @@ def generate(args):
                 print('Saving noise pred video '+str(i))
                 cache_video(
                     tensor=v[None],
-                    save_file=str(i).zfill(2)+'_noise_pred.mp4',
+                    save_file=str(i).zfill(2)+'_noise_pred_'+args.save_file,
                     fps=cfg.sample_fps,
                     nrow=1,
                     normalize=True,
@@ -595,7 +595,7 @@ def generate(args):
                 print('Saving x0 video '+str(i))
                 cache_video(
                     tensor=v[None],
-                    save_file=str(i).zfill(2)+'_noise_pred.mp4',
+                    save_file=str(i).zfill(2)+'_noise_pred_'+args.save_file,
                     fps=cfg.sample_fps,
                     nrow=1,
                     normalize=True,
