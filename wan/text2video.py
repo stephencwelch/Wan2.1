@@ -8,6 +8,7 @@ import sys
 import types
 from contextlib import contextmanager
 from functools import partial
+from datetime import datetime
 
 import torch
 import torch.cuda.amp as amp
@@ -212,6 +213,8 @@ class WanT2V:
         # evaluation mode
         all_noise_preds=[]
         all_x0s=[]
+        formatted_time = datetime.now().strftime("%Y%m%d_%H%M%S") #Just get time once
+
         with amp.autocast(dtype=self.param_dtype), torch.no_grad(), no_sync():
 
             if sample_solver == 'unipc':
@@ -274,8 +277,8 @@ class WanT2V:
                 # video = self.vae.decode(latents)
                 # all_x0s.append(video[0].detach().cpu())
 
-            torch.save(all_noise_preds, 'all_noise_preds_2.pt')
-            torch.save(all_x0s, 'all_x0_2.pt')
+            torch.save(all_noise_preds, 'all_noise_preds_'+formatted_time+'.pt')
+            torch.save(all_x0s, 'all_x0_'+formatted_time+'.pt.')
 
             x0 = latents #[torch.Size([16, 3, 90, 160])]
             if offload_model:
@@ -285,12 +288,15 @@ class WanT2V:
                 videos = self.vae.decode(x0)
 
                 print('Running cached results through VAE...')
+                self.text_encoder.model.cpu()
                 noise_vids=[]
                 for p in all_noise_preds:
-                    noise_vids.append(self.vae.decode([p.to('cuda')])[0]) #Will this be a problem since the VAE is on GPU?
+                    noise_vids.append(self.vae.decode([p.to('cuda')])[0]) 
+                    p.cpu()
                 x0_vids=[]
                 for p in all_x0s:
                     x0_vids.append(self.vae.decode([p.to('cuda')])[0])
+                    p.cpu()
 
         del noise, latents
         del sample_scheduler
