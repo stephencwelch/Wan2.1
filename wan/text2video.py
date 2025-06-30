@@ -269,9 +269,12 @@ class WanT2V:
                     generator=seed_g)[0]
                 latents = [temp_x0.squeeze(0)]
 
-                all_x0s.append(latents.detach().cpu())
+                all_x0s.append(latents[0].detach().cpu())
                 # video = self.vae.decode(latents)
                 # all_x0s.append(video[0].detach().cpu())
+
+            torch.save(all_noise_preds, 'all_noise_preds_1.pt')
+            torch.save(all_x0s, 'all_x0_1.pt')
 
             x0 = latents #[torch.Size([16, 3, 90, 160])]
             if offload_model:
